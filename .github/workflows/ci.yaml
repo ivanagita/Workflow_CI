@@ -51,12 +51,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Docker Model
+      - name: Build and Tag Docker Image
         run: |
+          # Masuk ke folder tempat Dockerfile berada
           cd MLProject
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:latest .
-          
+          # Build image dengan dua tag sekaligus
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:latest -t ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:${{ github.sha }} .
+
       - name: Push Docker Image
         run: |
+          # Push kedua tag tersebut
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:${{ github.sha }}
