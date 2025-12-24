@@ -1,34 +1,67 @@
-name: CI - Churn Prediction Model Training
+name: CI/CD - Heart Disease Model Training
 
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'MLProject/**'
+  workflow_dispatch:
 
 jobs:
   train-model:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up job
+        run: echo "Starting Advance Workflow..."
+
       - name: Checkout repository
         uses: actions/checkout@v3
-      
-      - name: Set up Python
+
+      - name: Set up Python 3.12.7
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-      
+          python-version: '3.12.7'
+
+      - name: Check Env
+        run: |
+          python --version
+          pip --version
+
       - name: Install dependencies
         run: |
           pip install pandas scikit-learn mlflow
-      
-      - name: Run MLflow Project
+
+      - name: Run mlflow project
         run: |
           cd MLProject
           mlflow run . --env-manager=local
-      
+
+      - name: Get latest MLflow run_id
+        run: ls -R MLProject/mlruns/
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: churn-model-artifacts
+          name: model-artifacts-${{ github.sha }}
           path: MLProject/mlruns/
+
+      # ===== STEP DOCKER (ADVANCE) =====
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker Model
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:latest ./MLProject
+
+      - name: Tag Docker Image
+        run: |
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:latest ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:${{ github.sha }}
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:${{ github.sha }}
+
+      - name: Training Complete
+        run: echo "Goal Achieved: Advance Level!"
