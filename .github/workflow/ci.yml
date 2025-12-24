@@ -1,0 +1,34 @@
+name: CI - Churn Prediction Model Training
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'MLProject/**'
+
+jobs:
+  train-model:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install pandas scikit-learn mlflow
+      
+      - name: Run MLflow Project
+        run: |
+          cd MLProject
+          mlflow run . --env-manager=local
+      
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: churn-model-artifacts
+          path: MLProject/mlruns/
