@@ -59,6 +59,3 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/churn-model:${{ github.sha }}
-
-      - name: Training Complete
-        run: echo "Goal Achieved: Advance Level!"
