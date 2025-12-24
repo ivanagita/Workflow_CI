@@ -1,5 +1,0 @@
-name: Churn_Prediction_Project
-
-entry_points:
-  main:
-    command: "python modelling.py"
